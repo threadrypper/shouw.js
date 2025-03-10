@@ -1,7 +1,6 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig.json",
     "extends": "../../tsconfig.json",
-    "composite": true,
     "compilerOptions": {
         "composite": true,
         "rootDir": "src",

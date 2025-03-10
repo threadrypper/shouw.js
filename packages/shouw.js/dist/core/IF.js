@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IF = IF;
 const Interpreter_1 = require("./Interpreter");
 async function IF(code, ctx) {
+    if (!code.match(/\$if/gi))
+        return {
+            error: false,
+            code: code
+        };
     if (!code.match(/\$endif/gi)) {
         await ctx.error({
             message: 'Invalid $if usage: Missing $endif',

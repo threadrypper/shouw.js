@@ -6,11 +6,19 @@
     "type": "commonjs",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "keywords": ["discord.js", "aoi.js", "shouw.js", "bdfd", "discord", "bot"],
+    "keywords": [
+        "discord.js",
+        "aoi.js",
+        "shouw.js",
+        "bdfd",
+        "discord",
+        "bot"
+    ],
     "author": "Tyowk <tyowk@outlook.com>",
     "license": "Apache-2.0",
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
+        "ts-node": "^10.9.2",
         "typescript": "^5.8.2"
     },
     "scripts": {

@@ -113,13 +113,6 @@ export class Interpreter {
 
                 for (const func of functions) {
                     if (!oldCode || oldCode.trim() === '') break;
-                    if (func.match(/(\$if|\$endif)$/i) && oldCode.match(/(\$if|\$endif)$/i)) {
-                        const { code: ifCode, error: isError } = await IF(oldCode, this);
-                        error = isError;
-                        currentCode = isError ? ifCode : await processFunction(ifCode);
-                        break;
-                    }
-
                     const unpacked = this.unpack(func, oldCode);
                     const functionData: Functions | undefined = this.functions.get(func);
                     if (!unpacked.all || !functionData || !functionData.code || typeof functionData.code !== 'function')
@@ -130,6 +123,13 @@ export class Interpreter {
                             message: `Invalid ${func} usage: Missing brackets`,
                             solution: `Make sure to add brackets to the function. Example: ${functionData.withParams}`
                         });
+                        break;
+                    }
+
+                    if (func.match(/\$if$/i)) {
+                        const { code: ifCode, error: isError } = await IF(oldCode, this);
+                        error = isError;
+                        currentCode = isError ? ifCode : await processFunction(ifCode);
                         break;
                     }
 
@@ -337,7 +337,7 @@ export class Interpreter {
         const splited = code.split(/\$/g);
 
         for (const part of splited) {
-            const matchingFunctions = [...this.functions.K, '$if', '$endif'].filter(
+            const matchingFunctions = this.functions.K.filter(
                 (func) => func.toLowerCase() === `$${part.toLowerCase()}`.slice(0, func.length)
             );
 

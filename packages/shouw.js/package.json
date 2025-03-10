@@ -1,0 +1,37 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "shouw.js",
+    "version": "0.0.1",
+    "description": "Aoi.js, but coded using TypeScript and better interpreter (maybe)",
+    "type": "commonjs",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "keywords": ["discord.js", "aoi.js", "shouw.js", "bdfd", "discord", "bot"],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "dev": "node dist/__test__"
+    },
+    "author": "Tyowk <tyowk@outlook.com>",
+    "license": "Apache-2.0",
+    "publishConfig": {
+        "provenance": true
+    },
+    "dependencies": {
+        "chalk": "^4.1.2",
+        "discord.js": "^14.18.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.8.2"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/shouwjs/shouw.js.git"
+    },
+    "bugs": {
+        "url": "https://github.com/shouwjs/shouw.js/issues"
+    },
+    "files": ["dist", "README.md", "LICENSE"],
+    "engines": {
+		"node": ">=20.x"
+	}
+}

@@ -1,0 +1,31 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "shouw.js",
+    "version": "0.0.1",
+    "description": "Aoi.js, but coded using TypeScript and better interpreter (maybe)",
+    "type": "commonjs",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "keywords": ["discord.js", "aoi.js", "shouw.js", "bdfd", "discord", "bot"],
+    "author": "Tyowk <tyowk@outlook.com>",
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
+        "typescript": "^5.8.2"
+    },
+    "scripts": {
+        "build": "tsc --build --verbose",
+        "lint": "biome lint --fix",
+        "format": "biome format --write"
+    },
+    "engines": {
+	    	"node": ">=20.x"
+	  },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/shouwjs/shouw.js.git"
+    },
+    "bugs": {
+        "url": "https://github.com/shouwjs/shouw.js/issues"
+    }
+}

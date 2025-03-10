@@ -1,0 +1,35 @@
+{
+    "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+    "formatter": {
+        "enabled": true,
+        "formatWithErrors": false,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120,
+        "lineEnding": "lf",
+        "include": ["database/src", "shouw.js/src"],
+        "ignore": ["database/dist", "shouw.js/dist"]
+    },
+    "javascript": {
+        "formatter": {
+            "enabled": true,
+            "quoteStyle": "single",
+            "quoteProperties": "asNeeded",
+            "trailingCommas": "none",
+            "semicolons": "always"
+        }
+    },
+    "linter": {
+        "rules": {
+            "suspicious": {
+                "noExplicitAny": "off"
+            }
+        }
+    },
+    "files": {
+        "ignoreUnknown": true,
+        "maxSize": 1000000,
+        "include": ["database/src", "shouw.js/src"],
+        "ignore": ["database/dist", "shouw.js/dist"]
+    }
+}

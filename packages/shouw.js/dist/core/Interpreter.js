@@ -57,8 +57,8 @@ class Interpreter {
                 await this.code(this);
                 return {};
             }
-            let result = this.code;
             let error = false;
+            let result = this.code;
             const processFunction = async (code) => {
                 const functions = this.extractFunctions(code);
                 if (functions.length === 0)
@@ -138,10 +138,10 @@ class Interpreter {
                         this[key] = value;
                     }
                 }
-                return currentCode.unescape().trim();
+                return currentCode.trim();
             };
             result = await processFunction(result);
-            this.code = result;
+            this.code = result.unescape();
             if (this.extras.sendMessage === true &&
                 error === false &&
                 ((this.code && this.code !== '') ||
@@ -279,7 +279,7 @@ class Interpreter {
             return void 0;
         switch (type) {
             case typings_1.ParamType.String:
-                return arg.toString().unescape();
+                return arg.toString();
             case typings_1.ParamType.BigInt:
                 return BigInt(arg);
             case typings_1.ParamType.Number:

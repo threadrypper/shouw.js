@@ -103,8 +103,8 @@ export class Interpreter {
                 return {};
             }
 
-            let result: string = this.code;
             let error = false;
+            let result: string = this.code;
 
             const processFunction = async (code: string): Promise<string> => {
                 const functions = this.extractFunctions(code);
@@ -205,11 +205,11 @@ export class Interpreter {
                     }
                 }
 
-                return currentCode.unescape().trim();
+                return currentCode.trim();
             };
 
             result = await processFunction(result);
-            this.code = result;
+            this.code = result.unescape();
 
             if (
                 this.extras.sendMessage === true &&
@@ -369,7 +369,7 @@ export class Interpreter {
 
         switch (type) {
             case ParamType.String:
-                return arg.toString().unescape();
+                return arg.toString();
             case ParamType.BigInt:
                 return BigInt(arg);
             case ParamType.Number:

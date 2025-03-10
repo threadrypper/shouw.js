@@ -136,14 +136,14 @@ export class Interpreter {
                     if (unpacked.args.length > 0) {
                         for (let i = 0; i < functionData.paramsLength; i++) {
                             const field = functionData.getParams(i);
-                            if (!field) continue;
+                            if (!field) break;
 
                             const arg = this.switchArg(
                                 (unpacked.args[i] ?? '') as string,
                                 field.type ?? ParamType.String
                             );
 
-                            if (!arg || arg === '') {
+                            if (field.type !== ParamType.Boolean && (!arg || arg === '')) {
                                 if (field.required) {
                                     error = await this.error({
                                         message: `Missing required argument ${field.name} on function ${func}!`,
@@ -162,7 +162,11 @@ export class Interpreter {
                             }
 
                             const processed = await processFunction(arg);
-                            if ((!processed || processed === '') && field.required) {
+                            if (
+                                (!processed || processed === '') &&
+                                field.required &&
+                                field.type !== ParamType.Boolean
+                            ) {
                                 error = await this.error({
                                     message: `Missing required argument ${field.name} on function ${func}!`,
                                     solution: 'Make sure to add all required argument to the function.'
@@ -294,7 +298,7 @@ export class Interpreter {
         const argsStr = code.slice(openBracketIndex + 1, closeBracketIndex).trim();
         const args = this.extractArguments(argsStr);
         const all = code.slice(funcStart, closeBracketIndex + 1);
-        return { func, args, brackets: true, all };
+        return { func, args: args.length ? args : [void 0], brackets: true, all };
     }
 
     private extractArguments(argsStr: string): Array<string> {
@@ -322,7 +326,7 @@ export class Interpreter {
 
         // @ts-ignore
         return args.map((arg: string) => {
-            if (arg !== '') return arg.unescape();
+            if (arg !== '') return arg;
             return void 0;
         });
     }
@@ -349,7 +353,7 @@ export class Interpreter {
     public async error(options: { message: string; solution?: string }): Promise<boolean> {
         try {
             if (!options.message) return true;
-            await this.context?.send(
+            this.message = await this.context?.send(
                 `\`\`\`\n🚫 ${options.message}${options.solution ? `\n\nSo, what is the solution?\n${options.solution}` : ''}\`\`\``
             );
             return true;

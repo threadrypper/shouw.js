@@ -87,9 +87,9 @@ class Interpreter {
                         for (let i = 0; i < functionData.paramsLength; i++) {
                             const field = functionData.getParams(i);
                             if (!field)
-                                continue;
+                                break;
                             const arg = this.switchArg((unpacked.args[i] ?? ''), field.type ?? typings_1.ParamType.String);
-                            if (!arg || arg === '') {
+                            if (field.type !== typings_1.ParamType.Boolean && (!arg || arg === '')) {
                                 if (field.required) {
                                     error = await this.error({
                                         message: `Missing required argument ${field.name} on function ${func}!`,
@@ -105,7 +105,9 @@ class Interpreter {
                                 continue;
                             }
                             const processed = await processFunction(arg);
-                            if ((!processed || processed === '') && field.required) {
+                            if ((!processed || processed === '') &&
+                                field.required &&
+                                field.type !== typings_1.ParamType.Boolean) {
                                 error = await this.error({
                                     message: `Missing required argument ${field.name} on function ${func}!`,
                                     solution: 'Make sure to add all required argument to the function.'
@@ -211,7 +213,7 @@ class Interpreter {
         const argsStr = code.slice(openBracketIndex + 1, closeBracketIndex).trim();
         const args = this.extractArguments(argsStr);
         const all = code.slice(funcStart, closeBracketIndex + 1);
-        return { func, args, brackets: true, all };
+        return { func, args: args.length ? args : [void 0], brackets: true, all };
     }
     extractArguments(argsStr) {
         const args = [];
@@ -240,7 +242,7 @@ class Interpreter {
         // @ts-ignore
         return args.map((arg) => {
             if (arg !== '')
-                return arg.unescape();
+                return arg;
             return void 0;
         });
     }
@@ -262,7 +264,7 @@ class Interpreter {
         try {
             if (!options.message)
                 return true;
-            await this.context?.send(`\`\`\`\n🚫 ${options.message}${options.solution ? `\n\nSo, what is the solution?\n${options.solution}` : ''}\`\`\``);
+            this.message = await this.context?.send(`\`\`\`\n🚫 ${options.message}${options.solution ? `\n\nSo, what is the solution?\n${options.solution}` : ''}\`\`\``);
             return true;
         }
         catch {

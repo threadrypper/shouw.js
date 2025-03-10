@@ -25,7 +25,7 @@ export default class Let extends Functions {
         } as FunctionData);
     }
 
-    code(_ctx: Interpreter, [varname, value]: [string, unknown], data: TemporarilyData): FunctionResultData {
+    code(_ctx: Interpreter, [varname, value]: [string, string], data: TemporarilyData): FunctionResultData {
         data.variables[varname] = value;
 
         return {

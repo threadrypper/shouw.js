@@ -58,22 +58,22 @@ class Interpreter {
                 return {};
             }
             let error = false;
-            let result = this.code;
             const processFunction = async (code) => {
                 const functions = this.extractFunctions(code);
                 if (functions.length === 0)
                     return code;
                 let currentCode = code;
+                let oldCode = code;
                 for (const func of functions) {
-                    if (!currentCode || currentCode.trim() === '')
+                    if (!oldCode || oldCode.trim() === '')
                         break;
-                    if (func.match(/(\$if|\$endif)$/i) && currentCode.match(/(\$if|\$endif)$/i)) {
-                        const { code: ifCode, error: isError } = await (0, _1.IF)(currentCode, this);
+                    if (func.match(/(\$if|\$endif)$/i) && oldCode.match(/(\$if|\$endif)$/i)) {
+                        const { code: ifCode, error: isError } = await (0, _1.IF)(oldCode, this);
                         error = isError;
                         currentCode = isError ? ifCode : await processFunction(ifCode);
                         break;
                     }
-                    const unpacked = this.unpack(func, currentCode);
+                    const unpacked = this.unpack(func, oldCode);
                     const functionData = this.functions.get(func);
                     if (!unpacked.all || !functionData || !functionData.code || typeof functionData.code !== 'function')
                         continue;
@@ -127,7 +127,8 @@ class Interpreter {
                         interpreter: Interpreter,
                         data: this.Temporarily
                     }, processedArgs, this.Temporarily)) ?? {};
-                    currentCode = currentCode.replace(unpacked.all, DATA.result?.toString().escape() ?? '');
+                    currentCode = currentCode.replace(unpacked.all, DATA.result?.toString() ?? '');
+                    oldCode = oldCode.replace(unpacked.all, '');
                     if (error || DATA.error === true) {
                         error = true;
                         break;
@@ -140,8 +141,7 @@ class Interpreter {
                 }
                 return currentCode.trim();
             };
-            result = await processFunction(result);
-            this.code = result.unescape();
+            this.code = (await processFunction(this.code)).unescape();
             if (this.extras.sendMessage === true &&
                 error === false &&
                 ((this.code && this.code !== '') ||

@@ -22,7 +22,6 @@ export interface FunctionData extends Objects {
     description?: string;
     brackets?: boolean;
     type?: string;
-    async?: boolean;
     params?: {
         name?: string;
         description?: string;

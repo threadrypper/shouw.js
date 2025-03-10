@@ -65,10 +65,12 @@ class Interpreter {
                     return code;
                 let currentCode = code;
                 for (const func of functions) {
-                    if (func.match(/(\$if|\$endif)$/i)) {
-                        const { code, error: isError } = await (0, _1.IF)(currentCode, this);
+                    if (!currentCode || currentCode.trim() === '')
+                        break;
+                    if (func.match(/(\$if|\$endif)$/i) && currentCode.match(/(\$if|\$endif)$/i)) {
+                        const { code: ifCode, error: isError } = await (0, _1.IF)(currentCode, this);
                         error = isError;
-                        currentCode = isError ? code : await processFunction(code);
+                        currentCode = isError ? ifCode : await processFunction(ifCode);
                         break;
                     }
                     const unpacked = this.unpack(func, currentCode);

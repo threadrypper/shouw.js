@@ -112,10 +112,11 @@ export class Interpreter {
                 let currentCode = code;
 
                 for (const func of functions) {
-                    if (func.match(/(\$if|\$endif)$/i)) {
-                        const { code, error: isError } = await IF(currentCode, this);
+                    if (!currentCode || currentCode.trim() === '') break;
+                    if (func.match(/(\$if|\$endif)$/i) && currentCode.match(/(\$if|\$endif)$/i)) {
+                        const { code: ifCode, error: isError } = await IF(currentCode, this);
                         error = isError;
-                        currentCode = isError ? code : await processFunction(code);
+                        currentCode = isError ? ifCode : await processFunction(ifCode);
                         break;
                     }
 

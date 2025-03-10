@@ -25,10 +25,13 @@
         "pretty": true,
         "skipDefaultLibCheck": true
     },
-    "references": [{
-        "path": "./packages/shouw.js"
-    },{
-        "path": "./packages/database"
-    }],
+    "references": [
+        {
+            "path": "./packages/shouw.js"
+        },
+        {
+            "path": "./packages/database"
+        }
+    ],
     "exclude": ["node_modules"]
 }

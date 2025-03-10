@@ -15,12 +15,12 @@
     },
     "scripts": {
         "build": "tsc --build --verbose",
-        "lint": "biome lint --fix",
-        "format": "biome format --write"
+        "lint": "biome lint . --fix",
+        "format": "biome format . --write"
     },
     "engines": {
-	    	"node": ">=20.x"
-	  },
+        "node": ">=20.x"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/shouwjs/shouw.js.git"

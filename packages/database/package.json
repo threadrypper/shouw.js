@@ -35,6 +35,6 @@
     },
     "files": ["dist", "README.md", "LICENSE"],
     "engines": {
-		"node": ">=20.x"
-	}
+        "node": ">=20.x"
+    }
 }

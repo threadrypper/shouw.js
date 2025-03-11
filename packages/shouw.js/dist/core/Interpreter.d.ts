@@ -24,6 +24,7 @@ export declare class Interpreter {
     Temporarily: TemporarilyData;
     discord: typeof Discord;
     readonly extras: ExtraOptionsData;
+    isError: boolean;
     components: readonly (JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>> | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder> | APIActionRowComponent<APIMessageActionRowComponent>)[];
     constructor(cmd: CommandData, options: InterpreterOptions, extras?: ExtraOptionsData);
     initialize(): Promise<{
@@ -38,6 +39,6 @@ export declare class Interpreter {
     error(options: {
         message: string;
         solution?: string;
-    }): Promise<boolean>;
+    }): Promise<undefined>;
     private switchArg;
 }

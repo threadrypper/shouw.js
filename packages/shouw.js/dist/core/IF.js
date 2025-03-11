@@ -106,9 +106,8 @@ async function IF(code, ctx) {
             }
         }
         result = code
-            .replace(/\$if\[/gi, '$if[')
-            .replace(/\$endif/gi, '$endif')
-            .replace(`$if[${conditionBlock}$endif`, ifResult.result === 'true' ? ifCodeBlock : isConditionPassed ? finalCode : elseCodeBlock);
+            .replace(/\$if/gi, '$if')
+            .replace(`$if[${conditionBlock}`, ifResult.result === 'true' ? ifCodeBlock : isConditionPassed ? finalCode : elseCodeBlock);
     }
     return { error: false, code: result };
 }

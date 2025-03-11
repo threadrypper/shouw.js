@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Interpreter = void 0;
 const _1 = require("./");
 const typings_1 = require("../typings");
-const chalk = require("chalk");
 const Discord = require("discord.js");
 class Interpreter {
     constructor(cmd, options, extras) {
         this.noop = () => { };
         this.discord = Discord;
+        this.isError = false;
         this.client = options.client;
         this.functions = this.client.functions;
         this.debug = options.debug;
@@ -57,7 +57,6 @@ class Interpreter {
                 await this.code(this);
                 return {};
             }
-            let error = false;
             const processFunction = async (code) => {
                 const functions = this.extractFunctions(code);
                 if (functions.length === 0)
@@ -72,55 +71,51 @@ class Interpreter {
                     if (!unpacked.all || !functionData || !functionData.code || typeof functionData.code !== 'function')
                         continue;
                     if (functionData.brackets && !unpacked.brackets) {
-                        error = await this.error({
+                        await this.error({
                             message: `Invalid ${func} usage: Missing brackets`,
                             solution: `Make sure to add brackets to the function. Example: ${functionData.withParams}`
                         });
                         break;
                     }
-                    if (func.match(/\$if$/i)) {
-                        const { code: ifCode, error: isError } = await (0, _1.IF)(oldCode, this);
-                        error = isError;
-                        currentCode = isError ? ifCode : await processFunction(ifCode);
-                        break;
-                    }
                     const processedArgs = [];
-                    if (unpacked.args.length > 0) {
-                        for (let i = 0; i < functionData.paramsLength; i++) {
-                            const field = functionData.getParams(i);
-                            if (!field)
-                                break;
-                            const arg = this.switchArg((unpacked.args[i] ?? ''), field.type ?? typings_1.ParamType.String);
-                            if (field.type !== typings_1.ParamType.Boolean && (!arg || arg === '')) {
-                                if (field.required) {
-                                    error = await this.error({
-                                        message: `Missing required argument ${field.name} on function ${func}!`,
-                                        solution: 'Make sure to add all required argument to the function.'
-                                    });
-                                    break;
-                                }
-                                processedArgs.push(void 0);
-                                continue;
-                            }
-                            if ((typeof arg === 'string' && !arg.match(/\$/g)) || typeof arg !== 'string') {
-                                processedArgs.push(arg);
-                                continue;
-                            }
-                            const processed = await processFunction(arg);
-                            if ((!processed || processed === '') &&
-                                field.required &&
-                                field.type !== typings_1.ParamType.Boolean) {
-                                error = await this.error({
+                    for (let i = 0; i < functionData.paramsLength; i++) {
+                        const field = functionData.getParams(i);
+                        if (!field)
+                            break;
+                        const arg = this.switchArg((unpacked.args[i] ?? ''), field.type ?? typings_1.ParamType.String);
+                        if (field.type !== typings_1.ParamType.Boolean && (!arg || arg === '')) {
+                            if (field.required) {
+                                await this.error({
                                     message: `Missing required argument ${field.name} on function ${func}!`,
                                     solution: 'Make sure to add all required argument to the function.'
                                 });
                                 break;
                             }
-                            processedArgs.push(processed);
+                            processedArgs.push(void 0);
+                            continue;
                         }
+                        if ((typeof arg === 'string' && !arg.match(/\$/g)) || typeof arg !== 'string') {
+                            processedArgs.push(arg);
+                            continue;
+                        }
+                        const processed = await processFunction(arg);
+                        if ((!processed || processed === '') && field.required && field.type !== typings_1.ParamType.Boolean) {
+                            await this.error({
+                                message: `Missing required argument ${field.name} on function ${func}!`,
+                                solution: 'Make sure to add all required argument to the function.'
+                            });
+                            break;
+                        }
+                        processedArgs.push(processed);
+                    }
+                    if (func.match(/\$if$/i)) {
+                        const { code: ifCode, error: isError } = await (0, _1.IF)(oldCode, this);
+                        this.isError = isError;
+                        currentCode = isError ? ifCode : await processFunction(ifCode);
+                        break;
                     }
                     unpacked.args = processedArgs;
-                    if (error)
+                    if (this.isError)
                         break;
                     const DATA = (await functionData.code({
                         ...this,
@@ -129,8 +124,8 @@ class Interpreter {
                     }, processedArgs, this.Temporarily)) ?? {};
                     currentCode = currentCode.replace(unpacked.all, DATA.result?.toString() ?? '');
                     oldCode = oldCode.replace(unpacked.all, '');
-                    if (error || DATA.error === true) {
-                        error = true;
+                    if (this.isError || DATA.error === true) {
+                        this.isError = true;
                         break;
                     }
                     for (const [key, value] of Object.entries(DATA)) {
@@ -143,7 +138,7 @@ class Interpreter {
             };
             this.code = (await processFunction(this.code)).unescape();
             if (this.extras.sendMessage === true &&
-                error === false &&
+                this.isError === false &&
                 ((this.code && this.code !== '') ||
                     this.components.length > 0 ||
                     this.embeds.length > 0 ||
@@ -157,7 +152,7 @@ class Interpreter {
                 }));
             }
             return {
-                ...(error === false &&
+                ...(this.isError === false &&
                     this.extras.returnResult === true && {
                     result: this.code
                 }),
@@ -165,7 +160,7 @@ class Interpreter {
                     id: this.message?.id
                 }),
                 ...(this.extras.returnError === true && {
-                    error: error
+                    error: this.isError
                 }),
                 ...(this.extras.returnData === true && {
                     data: {
@@ -180,7 +175,7 @@ class Interpreter {
             };
         }
         catch (err) {
-            console.log(`[${chalk.red('ERROR')}] :: ${err?.stack ?? err}`);
+            this.client.debug(`${err?.stack ?? err}`, 'ERROR');
             return {};
         }
     }
@@ -215,7 +210,7 @@ class Interpreter {
         const argsStr = code.slice(openBracketIndex + 1, closeBracketIndex).trim();
         const args = this.extractArguments(argsStr);
         const all = code.slice(funcStart, closeBracketIndex + 1);
-        return { func, args: args.length ? args : [void 0], brackets: true, all };
+        return { func, args: args, brackets: true, all };
     }
     extractArguments(argsStr) {
         const args = [];
@@ -241,7 +236,6 @@ class Interpreter {
         }
         if (currentArg.trim())
             args.push(currentArg.trim());
-        // @ts-ignore
         return args.map((arg) => {
             if (arg !== '')
                 return arg;
@@ -264,14 +258,14 @@ class Interpreter {
     }
     async error(options) {
         try {
+            this.isError = true;
             if (!options.message)
-                return true;
+                return;
             this.message = await this.context?.send(`\`\`\`\n🚫 ${options.message}${options.solution ? `\n\nSo, what is the solution?\n${options.solution}` : ''}\`\`\``);
-            return true;
         }
         catch {
+            this.isError = true;
             this.client.debug(options.message, 'ERROR');
-            return true;
         }
     }
     switchArg(arg, type) {

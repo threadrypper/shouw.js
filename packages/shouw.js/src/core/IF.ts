@@ -140,10 +140,9 @@ export async function IF(
         }
 
         result = code
-            .replace(/\$if\[/gi, '$if[')
-            .replace(/\$endif/gi, '$endif')
+            .replace(/\$if/gi, '$if')
             .replace(
-                `$if[${conditionBlock}$endif`,
+                `$if[${conditionBlock}`,
                 ifResult.result === 'true' ? ifCodeBlock : isConditionPassed ? finalCode : elseCodeBlock
             );
     }

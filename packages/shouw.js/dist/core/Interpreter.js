@@ -65,7 +65,7 @@ class Interpreter {
                 let currentCode = code;
                 let oldCode = code;
                 for (const func of functions) {
-                    if (!oldCode || oldCode.trim() === '')
+                    if (this.isError || !oldCode || oldCode.trim() === '')
                         break;
                     const unpacked = this.unpack(func, oldCode);
                     const functionData = this.functions.get(func);
@@ -78,6 +78,8 @@ class Interpreter {
                         });
                         break;
                     }
+                    if (this.isError)
+                        break;
                     const processedArgs = [];
                     for (let i = 0; i < functionData.paramsLength; i++) {
                         const field = functionData.getParams(i);
@@ -109,6 +111,8 @@ class Interpreter {
                         }
                         processedArgs.push(processed);
                     }
+                    if (this.isError)
+                        break;
                     if (func.match(/\$if$/i)) {
                         const { code: ifCode, error: isError, oldCode: ifOldCode } = await (0, _1.IF)(currentCode, oldCode, this);
                         this.isError = isError;

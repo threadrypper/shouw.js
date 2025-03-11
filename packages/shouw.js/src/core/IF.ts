@@ -9,7 +9,7 @@ export async function IF(
     code: string;
     oldCode: string;
 }> {
-    if (!code.match(/\$if/gi))
+    if (ctx.isError || !code.match(/\$if/gi))
         return {
             error: false,
             code: code,
@@ -57,7 +57,7 @@ export async function IF(
             }
         ).initialize();
 
-        if (ifResult.error) {
+        if (ctx.isError || ifResult.error) {
             return {
                 error: true,
                 code: result,
@@ -131,7 +131,7 @@ export async function IF(
                         }
                     ).initialize();
 
-                    if (elseifResult.error) {
+                    if (ctx.isError || elseifResult.error) {
                         return {
                             error: true,
                             code: result,
@@ -157,7 +157,7 @@ export async function IF(
         oldCodeResult = oldCode.replace(/\$if/gi, '$if').replace(`$if[${conditionBlock}`, '');
     }
 
-    return { error: false, code: result, oldCode: oldCodeResult };
+    return { error: ctx.isError, code: result, oldCode: oldCodeResult };
 }
 
 function extractCondition(code: string): string {

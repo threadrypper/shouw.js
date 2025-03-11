@@ -111,7 +111,7 @@ export class Interpreter {
                 let oldCode = code;
 
                 for (const func of functions) {
-                    if (!oldCode || oldCode.trim() === '') break;
+                    if (this.isError || !oldCode || oldCode.trim() === '') break;
                     const unpacked = this.unpack(func, oldCode);
                     const functionData: Functions | undefined = this.functions.get(func);
                     if (!unpacked.all || !functionData || !functionData.code || typeof functionData.code !== 'function')
@@ -125,7 +125,9 @@ export class Interpreter {
                         break;
                     }
 
+                    if (this.isError) break;
                     const processedArgs: Array<unknown> = [];
+
                     for (let i = 0; i < functionData.paramsLength; i++) {
                         const field = functionData.getParams(i);
                         if (!field) break;
@@ -162,6 +164,7 @@ export class Interpreter {
                         processedArgs.push(processed);
                     }
 
+                    if (this.isError) break;
                     if (func.match(/\$if$/i)) {
                         const {
                             code: ifCode,

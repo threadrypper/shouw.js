@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IF = IF;
 const Interpreter_1 = require("./Interpreter");
 async function IF(code, oldCode, ctx) {
-    if (!code.match(/\$if/gi))
+    if (ctx.isError || !code.match(/\$if/gi))
         return {
             error: false,
             code: code,
@@ -40,7 +40,7 @@ async function IF(code, oldCode, ctx) {
             returnError: true,
             returnData: false
         }).initialize();
-        if (ifResult.error) {
+        if (ctx.isError || ifResult.error) {
             return {
                 error: true,
                 code: result,
@@ -97,7 +97,7 @@ async function IF(code, oldCode, ctx) {
                         returnError: true,
                         returnData: false
                     }).initialize();
-                    if (elseifResult.error) {
+                    if (ctx.isError || elseifResult.error) {
                         return {
                             error: true,
                             code: result,
@@ -116,7 +116,7 @@ async function IF(code, oldCode, ctx) {
             .replace(`$if[${conditionBlock}`, ifResult.result === 'true' ? ifCodeBlock : isConditionPassed ? finalCode : elseCodeBlock);
         oldCodeResult = oldCode.replace(/\$if/gi, '$if').replace(`$if[${conditionBlock}`, '');
     }
-    return { error: false, code: result, oldCode: oldCodeResult };
+    return { error: ctx.isError, code: result, oldCode: oldCodeResult };
 }
 function extractCondition(code) {
     let nestingLevel = 1;

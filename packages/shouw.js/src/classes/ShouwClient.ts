@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { blue } from 'chalk';
+import { blue, red } from 'chalk';
 import type { ShouwClientOptions, CommandData } from '../typings';
 import { FunctionsManager, CommandsManager } from './';
 import { BaseClient } from './BaseClient';
@@ -26,9 +26,10 @@ export class ShouwClient extends BaseClient {
         return this;
     }
 
-    public debug(message, type: 'ERROR' | 'DEBUG' = 'DEBUG'): ShouwClient {
-        if (message && this.shouwOptions.debug === true) {
-            console.log(`[${blue(type)}] :: ${message}`);
+    public debug(message, type: 'ERROR' | 'DEBUG' = 'DEBUG', force = false): ShouwClient {
+        if (message && (force === true || this.shouwOptions.debug === true)) {
+            const color = type === 'ERROR' ? red : blue;
+            console.log(`[${color(type)}] :: ${message}`);
         }
 
         return this;

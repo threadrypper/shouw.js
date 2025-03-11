@@ -42,6 +42,7 @@ export default async function Events(message: Message, client: ShouwClient) {
     const alwaysExecute: CommandData[] | undefined = commands.filter(
         (v: CommandData) => v.name?.toLowerCase() === '$alwaysexecute'
     );
+
     if (Array.isArray(alwaysExecute)) {
         for (const command of alwaysExecute) {
             if (!command || !command.code) break;

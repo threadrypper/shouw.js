@@ -39,7 +39,7 @@ String.prototype.escape = function () {
         .replace(/\|\|/g, '#OR#');
 };
 
-String.prototype.JSONParse = function () {
+String.prototype.toObject = function () {
     try {
         return JSON.parse(this as string);
     } catch {

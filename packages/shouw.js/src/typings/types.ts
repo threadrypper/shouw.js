@@ -7,7 +7,13 @@ import type {
     ChatInputCommandInteraction,
     MessageComponentInteraction,
     ModalSubmitInteraction,
-    ContextMenuCommandInteraction
+    ContextMenuCommandInteraction,
+    Channel,
+    CategoryChannel,
+    ForumChannel,
+    MediaChannel,
+    PartialGroupDMChannel,
+    PartialDMChannel
 } from 'discord.js';
 
 export type Interaction =
@@ -28,3 +34,8 @@ export type InteractionReplyData =
           fetchReply?: boolean;
           withResponse?: boolean;
       });
+
+export type SendableChannel = Exclude<
+    Channel,
+    CategoryChannel | PartialGroupDMChannel | PartialDMChannel | ForumChannel | MediaChannel
+> | null;

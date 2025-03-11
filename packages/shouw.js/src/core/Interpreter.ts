@@ -131,7 +131,6 @@ export class Interpreter {
                     for (let i = 0; i < functionData.paramsLength; i++) {
                         const field = functionData.getParams(i);
                         if (!field) break;
-
                         const arg = this.switchArg((unpacked.args[i] ?? '') as string, field.type ?? ParamType.String);
 
                         if (field.type !== ParamType.Boolean && (!arg || arg === '')) {
@@ -152,7 +151,7 @@ export class Interpreter {
                             continue;
                         }
 
-                        const processed = await processFunction(arg);
+                        const processed = this.switchArg(await processFunction(arg), field.type ?? ParamType.String);
                         if ((!processed || processed === '') && field.required && field.type !== ParamType.Boolean) {
                             await this.error({
                                 message: `Missing required argument ${field.name} on function ${func}!`,
@@ -255,7 +254,7 @@ export class Interpreter {
                 })
             };
         } catch (err: any) {
-            this.client.debug(`${err?.stack ?? err}`, 'ERROR');
+            this.client.debug(`${err?.stack ?? err}`, 'ERROR', true);
             return {};
         }
     }
@@ -358,7 +357,7 @@ export class Interpreter {
             );
         } catch {
             this.isError = true;
-            this.client.debug(options.message, 'ERROR');
+            this.client.debug(options.message, 'ERROR', true);
         }
     }
 
@@ -375,9 +374,9 @@ export class Interpreter {
             case ParamType.Boolean:
                 return arg.toBoolean();
             case ParamType.Object:
-                return arg.JSONParse();
+                return arg.toObject();
             case ParamType.Array:
-                return arg.JSONParse();
+                return arg.toObject();
             case ParamType.URL:
                 return arg.toURL();
             default:

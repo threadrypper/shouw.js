@@ -101,7 +101,7 @@ class Interpreter {
                             processedArgs.push(arg);
                             continue;
                         }
-                        const processed = await processFunction(arg);
+                        const processed = this.switchArg(await processFunction(arg), field.type ?? typings_1.ParamType.String);
                         if ((!processed || processed === '') && field.required && field.type !== typings_1.ParamType.Boolean) {
                             await this.error({
                                 message: `Missing required argument ${field.name} on function ${func}!`,
@@ -181,7 +181,7 @@ class Interpreter {
             };
         }
         catch (err) {
-            this.client.debug(`${err?.stack ?? err}`, 'ERROR');
+            this.client.debug(`${err?.stack ?? err}`, 'ERROR', true);
             return {};
         }
     }
@@ -271,7 +271,7 @@ class Interpreter {
         }
         catch {
             this.isError = true;
-            this.client.debug(options.message, 'ERROR');
+            this.client.debug(options.message, 'ERROR', true);
         }
     }
     switchArg(arg, type) {
@@ -287,9 +287,9 @@ class Interpreter {
             case typings_1.ParamType.Boolean:
                 return arg.toBoolean();
             case typings_1.ParamType.Object:
-                return arg.JSONParse();
+                return arg.toObject();
             case typings_1.ParamType.Array:
-                return arg.JSONParse();
+                return arg.toObject();
             case typings_1.ParamType.URL:
                 return arg.toURL();
             default:

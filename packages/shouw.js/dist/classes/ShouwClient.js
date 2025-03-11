@@ -21,9 +21,10 @@ class ShouwClient extends BaseClient_1.BaseClient {
         command.set(command.size, data);
         return this;
     }
-    debug(message, type = 'DEBUG') {
-        if (message && this.shouwOptions.debug === true) {
-            console.log(`[${(0, chalk_1.blue)(type)}] :: ${message}`);
+    debug(message, type = 'DEBUG', force = false) {
+        if (message && (force === true || this.shouwOptions.debug === true)) {
+            const color = type === 'ERROR' ? chalk_1.red : chalk_1.blue;
+            console.log(`[${color(type)}] :: ${message}`);
         }
         return this;
     }

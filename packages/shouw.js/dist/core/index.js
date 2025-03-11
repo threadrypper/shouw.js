@@ -52,7 +52,7 @@ String.prototype.escape = function () {
         .replace(/&&/g, '#AND#')
         .replace(/\|\|/g, '#OR#');
 };
-String.prototype.JSONParse = function () {
+String.prototype.toObject = function () {
     try {
         return JSON.parse(this);
     }

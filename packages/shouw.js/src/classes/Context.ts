@@ -1,12 +1,19 @@
 import type {
-    TextChannel,
+    APIInteractionGuildMember,
     User,
     Guild,
     GuildMember,
     OmitPartialGroupDMChannel,
     InteractionCallbackResponse
 } from 'discord.js';
-import type { Interaction, InteractionWithMessage, SendData, MessageReplyData, InteractionReplyData } from '../typings';
+import type {
+    Interaction,
+    InteractionWithMessage,
+    SendData,
+    MessageReplyData,
+    InteractionReplyData,
+    SendableChannel
+} from '../typings';
 import {
     Message,
     ChatInputCommandInteraction,
@@ -17,20 +24,21 @@ import {
 
 export class Context {
     public args?: Array<string>;
-    public channel?: TextChannel;
-    public user?: User;
-    public member?: GuildMember;
-    public guild?: Guild;
+    public channel?: SendableChannel;
+    public user?: User | null;
+    public member?: GuildMember | APIInteractionGuildMember | null;
+    public guild?: Guild | null;
     public message?: Message | null;
-    public interaction: Interaction | null;
+    public interaction?: Interaction | null;
 
     constructor(ctx: InteractionWithMessage, args: Array<string>) {
-        this.interaction = ctx instanceof Message ? null : ctx;
-        this.args = args;
-        this.message = ctx instanceof Message ? ctx : null;
-        this.channel = ctx.channel as TextChannel;
-        this.member = ctx.member as GuildMember;
-        this.guild = ctx.guild as Guild;
+        this.interaction = ctx instanceof Message ? void 0 : ctx;
+        this.user = ctx instanceof Message ? ctx.author : ctx.user;
+        this.message = ctx instanceof Message ? ctx : void 0;
+        this.channel = ctx.channel as SendableChannel;
+        this.args = args ?? [];
+        this.member = ctx.member;
+        this.guild = ctx.guild;
     }
 
     private get isInteraction(): boolean {
@@ -44,20 +52,24 @@ export class Context {
     }
 
     public async send(data: SendData): Promise<Message<boolean> | undefined> {
-        if (!this.isInteraction) {
-            if (!this.channel) return void 0;
-            return await this.channel?.send(data);
-        }
+        if (this.isInteraction) return await this.reply(data);
 
-        return await this.reply(data);
+        if (!this.channel) return void 0;
+        if (this.channel.partial) await this.channel.fetch();
+        return await this.channel.send(data);
     }
 
     public async reply(
         data: MessageReplyData
     ): Promise<Message<boolean> | OmitPartialGroupDMChannel<Message<boolean>> | undefined>;
+
     public async reply(data: InteractionReplyData): Promise<InteractionCallbackResponse>;
+
     public async reply(data: any): Promise<any> {
-        if (this.isInteraction) return await this.interaction?.reply(data);
-        return await this.message?.reply(data);
+        if (this.isInteraction && this.interaction) return await this.interaction.reply(data);
+
+        if (!this.message) return void 0;
+        if (this.message.partial) await this.message.fetch();
+        return await this.message.reply(data);
     }
 }

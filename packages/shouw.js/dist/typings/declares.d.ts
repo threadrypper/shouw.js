@@ -2,7 +2,7 @@ declare global {
     interface String {
         unescape(): string;
         escape(): string;
-        JSONParse(): object;
+        toObject(): object;
         toURL(): string | undefined;
         toBoolean(): boolean;
     }

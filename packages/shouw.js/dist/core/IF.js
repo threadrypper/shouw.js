@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IF = IF;
 const Interpreter_1 = require("./Interpreter");
-async function IF(code, ctx) {
+async function IF(code, oldCode, ctx) {
     if (!code.match(/\$if/gi))
         return {
             error: false,
-            code: code
+            code: code,
+            oldCode: oldCode
         };
     if (!code.match(/\$endif/gi)) {
         await ctx.error({
@@ -15,10 +16,12 @@ async function IF(code, ctx) {
         });
         return {
             error: true,
-            code: code
+            code: code,
+            oldCode: oldCode
         };
     }
     let result = code;
+    let oldCodeResult = oldCode;
     const ifStatements = code.split(/\$if\[/gi).slice(1);
     for (let statement of ifStatements) {
         const conditionBlock = code
@@ -40,7 +43,8 @@ async function IF(code, ctx) {
         if (ifResult.error) {
             return {
                 error: true,
-                code: result
+                code: result,
+                oldCode: oldCodeResult
             };
         }
         const elseIfBlocks = {};
@@ -54,7 +58,8 @@ async function IF(code, ctx) {
                     });
                     return {
                         error: true,
-                        code: result
+                        code: result,
+                        oldCode: oldCodeResult
                     };
                 }
                 const elseifContent = elseIf.split(/\$endelseif/gi)[0];
@@ -95,7 +100,8 @@ async function IF(code, ctx) {
                     if (elseifResult.error) {
                         return {
                             error: true,
-                            code: result
+                            code: result,
+                            oldCode: oldCodeResult
                         };
                     }
                     if (elseifResult.result === 'true') {
@@ -108,8 +114,9 @@ async function IF(code, ctx) {
         result = code
             .replace(/\$if/gi, '$if')
             .replace(`$if[${conditionBlock}`, ifResult.result === 'true' ? ifCodeBlock : isConditionPassed ? finalCode : elseCodeBlock);
+        oldCodeResult = oldCode.replace(/\$if/gi, '$if').replace(`$if[${conditionBlock}`, '');
     }
-    return { error: false, code: result };
+    return { error: false, code: result, oldCode: oldCodeResult };
 }
 function extractCondition(code) {
     let nestingLevel = 1;

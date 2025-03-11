@@ -22,6 +22,7 @@ export class Interpreter {
     public readonly functions: FunctionsManager;
     public readonly debug: boolean | undefined;
 
+    public time = Date.now();
     public code: string | ((ctx: Interpreter) => any);
     public command: CommandData;
     public channel?: Channel;
@@ -162,9 +163,15 @@ export class Interpreter {
                     }
 
                     if (func.match(/\$if$/i)) {
-                        const { code: ifCode, error: isError } = await IF(oldCode, this);
+                        const {
+                            code: ifCode,
+                            error: isError,
+                            oldCode: ifOldCode
+                        } = await IF(currentCode, oldCode, this);
+
                         this.isError = isError;
                         currentCode = isError ? ifCode : await processFunction(ifCode);
+                        oldCode = ifOldCode;
                         break;
                     }
 
@@ -195,7 +202,7 @@ export class Interpreter {
                     }
                 }
 
-                return currentCode.trim();
+                return currentCode.trim().replace(/\$executionTime/gi, (Date.now() - this.time).toString());
             };
 
             this.code = (await processFunction(this.code)).unescape();

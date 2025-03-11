@@ -6,6 +6,7 @@ export declare class Interpreter {
     readonly client: Client;
     readonly functions: FunctionsManager;
     readonly debug: boolean | undefined;
+    time: number;
     code: string | ((ctx: Interpreter) => any);
     command: CommandData;
     channel?: Channel;

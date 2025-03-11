@@ -6,6 +6,7 @@ const typings_1 = require("../typings");
 const Discord = require("discord.js");
 class Interpreter {
     constructor(cmd, options, extras) {
+        this.time = Date.now();
         this.noop = () => { };
         this.discord = Discord;
         this.isError = false;
@@ -109,9 +110,10 @@ class Interpreter {
                         processedArgs.push(processed);
                     }
                     if (func.match(/\$if$/i)) {
-                        const { code: ifCode, error: isError } = await (0, _1.IF)(oldCode, this);
+                        const { code: ifCode, error: isError, oldCode: ifOldCode } = await (0, _1.IF)(currentCode, oldCode, this);
                         this.isError = isError;
                         currentCode = isError ? ifCode : await processFunction(ifCode);
+                        oldCode = ifOldCode;
                         break;
                     }
                     unpacked.args = processedArgs;
@@ -134,7 +136,7 @@ class Interpreter {
                         this[key] = value;
                     }
                 }
-                return currentCode.trim();
+                return currentCode.trim().replace(/\$executionTime/gi, (Date.now() - this.time).toString());
             };
             this.code = (await processFunction(this.code)).unescape();
             if (this.extras.sendMessage === true &&

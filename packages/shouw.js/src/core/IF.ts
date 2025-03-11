@@ -2,15 +2,18 @@ import { Interpreter } from './Interpreter';
 
 export async function IF(
     code: string,
+    oldCode: string,
     ctx: Interpreter
 ): Promise<{
     error: boolean;
     code: string;
+    oldCode: string;
 }> {
     if (!code.match(/\$if/gi))
         return {
             error: false,
-            code: code
+            code: code,
+            oldCode: oldCode
         };
 
     if (!code.match(/\$endif/gi)) {
@@ -21,11 +24,13 @@ export async function IF(
 
         return {
             error: true,
-            code: code
+            code: code,
+            oldCode: oldCode
         };
     }
 
     let result = code;
+    let oldCodeResult = oldCode;
     const ifStatements = code.split(/\$if\[/gi).slice(1);
 
     for (let statement of ifStatements) {
@@ -55,7 +60,8 @@ export async function IF(
         if (ifResult.error) {
             return {
                 error: true,
-                code: result
+                code: result,
+                oldCode: oldCodeResult
             };
         }
 
@@ -72,7 +78,8 @@ export async function IF(
 
                     return {
                         error: true,
-                        code: result
+                        code: result,
+                        oldCode: oldCodeResult
                     };
                 }
 
@@ -127,7 +134,8 @@ export async function IF(
                     if (elseifResult.error) {
                         return {
                             error: true,
-                            code: result
+                            code: result,
+                            oldCode: oldCodeResult
                         };
                     }
 
@@ -145,9 +153,11 @@ export async function IF(
                 `$if[${conditionBlock}`,
                 ifResult.result === 'true' ? ifCodeBlock : isConditionPassed ? finalCode : elseCodeBlock
             );
+
+        oldCodeResult = oldCode.replace(/\$if/gi, '$if').replace(`$if[${conditionBlock}`, '');
     }
 
-    return { error: false, code: result };
+    return { error: false, code: result, oldCode: oldCodeResult };
 }
 
 function extractCondition(code: string): string {

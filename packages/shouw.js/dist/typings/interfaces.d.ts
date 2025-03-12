@@ -62,6 +62,7 @@ export interface HelpersData {
     interpreter: typeof Interpreter;
     unescape: (str: string) => string;
     escape: (str: string) => string;
+    mustEscape: (str: string) => string;
 }
 export interface ShouwClientOptions extends DiscordType.ClientOptions {
     token: undefined | string;

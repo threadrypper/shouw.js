@@ -35,7 +35,8 @@ class Interpreter {
             condition: _1.CheckCondition,
             interpreter: Interpreter,
             unescape: (str) => str.unescape(),
-            escape: (str) => str.escape()
+            escape: (str) => str.escape(),
+            mustEscape: (str) => str.mustEscape()
         };
         this.Temporarily =
             options.Temporarily ??
@@ -66,8 +67,8 @@ class Interpreter {
                 const functions = this.extractFunctions(code);
                 if (functions.length === 0)
                     return code;
-                let currentCode = code;
                 let oldCode = code;
+                let currentCode = code;
                 for (const func of functions) {
                     if (this.isError || !oldCode || oldCode.trim() === '')
                         break;
@@ -129,7 +130,7 @@ class Interpreter {
                         break;
                     const DATA = (0, utils_1.filterObject)(await functionData.code(this, processedArgs, this.Temporarily)) ??
                         {};
-                    currentCode = currentCode.replace(unpacked.all, DATA.result?.toString() ?? '');
+                    currentCode = currentCode.replace(unpacked.all, () => DATA.result?.toString() ?? '');
                     oldCode = oldCode.replace(unpacked.all, '');
                     if (this.isError || DATA.error === true) {
                         this.isError = true;
@@ -141,11 +142,11 @@ class Interpreter {
                         this[key] = value;
                     }
                 }
-                return currentCode
-                    .trim()
-                    .replace(/\$executionTime/gi, (performance.now() - this.start).toFixed(2).toString());
+                return currentCode.trim();
             };
-            this.code = (await processFunction(this.code)).unescape();
+            const end = (performance.now() - this.start).toFixed(2).toString();
+            this.code = (await processFunction(this.code)).unescape().replace(/\$executionTime/gi, end);
+            this.embeds = JSON.parse(JSON.stringify(this.embeds).replace(/\$executionTime/gi, end));
             if (this.extras.sendMessage === true &&
                 this.isError === false &&
                 ((this.code && this.code !== '') ||
@@ -182,22 +183,19 @@ class Interpreter {
         const funcStart = code.toLowerCase().indexOf(func.toLowerCase());
         if (funcStart === -1)
             return { func, args: [], brackets: false, all: null };
-        if (funcStart > 0 && code[funcStart - 1] === '$')
-            return { func, args: [], brackets: false, all: func };
         const openBracketIndex = code.indexOf('[', funcStart);
         if (openBracketIndex === -1)
             return { func, args: [], brackets: false, all: func };
-        const textBetween = code.slice(funcStart + func.length, openBracketIndex).trim();
-        if (textBetween.match(/\$/))
+        const textBetween = code.slice(funcStart + func.length, openBracketIndex + 1).trim();
+        if (textBetween.match(/\$/) || !textBetween.startsWith('['))
             return { func, args: [], brackets: false, all: func };
         let bracketStack = 0;
         let closeBracketIndex = openBracketIndex;
         while (closeBracketIndex < code.length) {
-            const char = code[closeBracketIndex];
-            if (char === '[') {
+            if (code.charAt(closeBracketIndex) === '[') {
                 bracketStack++;
             }
-            else if (char === ']') {
+            else if (code.charAt(closeBracketIndex) === ']') {
                 bracketStack--;
                 if (bracketStack === 0)
                     break;
@@ -216,7 +214,7 @@ class Interpreter {
         let depth = 0;
         let currentArg = '';
         for (let i = 0; i < argsStr.length; i++) {
-            const char = argsStr[i];
+            const char = argsStr.charAt(i);
             if (char === '[') {
                 depth++;
                 currentArg += char;
@@ -245,7 +243,7 @@ class Interpreter {
         const functions = [];
         const splited = code.split(/\$/g);
         for (const part of splited) {
-            const matchingFunctions = this.functions.K.filter((func) => func.toLowerCase() === `$${part.toLowerCase()}`.slice(0, func.length));
+            const matchingFunctions = this.functions.K.filter((func) => func && func.toLowerCase() === `$${part.toLowerCase()}`.slice(0, func.length));
             if (matchingFunctions.length === 1) {
                 functions.push(matchingFunctions[0]);
             }

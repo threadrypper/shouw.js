@@ -3,7 +3,7 @@ import type { InterpreterOptions, FunctionData, FunctionResultData } from '../..
 import { ParamType } from '../../typings';
 import { inspect } from 'node:util';
 
-export default class CheckCondition extends Functions {
+export default class Eval extends Functions {
     constructor() {
         super({
             name: '$eval',
@@ -77,8 +77,8 @@ export default class CheckCondition extends Functions {
             }
         ).initialize();
 
-        return {
-            result: returnId || returnResult || returnError || returnData ? inspect(interpreterResult) : void 0
-        };
+        return this.success(
+            returnId || returnResult || returnError || returnData ? inspect(interpreterResult) : void 0
+        );
     }
 }

@@ -1,8 +1,9 @@
 import type * as Discord from 'discord.js';
 import type * as DiscordType from 'discord.js';
 import type { Context, ShouwClient } from '../classes';
-import type { CheckCondition, Interpreter } from '../core';
+import type { CheckCondition, Interpreter, Time } from '../core';
 import type { ParamType } from './enums';
+import type { sleep } from '../utils';
 interface Objects {
     [key: string | symbol | number]: unknown;
 }
@@ -52,9 +53,11 @@ export interface TemporarilyData {
     variables: Objects;
     splits: Array<string>;
     randoms: Objects;
-    timezone: string;
+    timezone: string | undefined;
 }
 export interface HelpersData {
+    sleep: typeof sleep;
+    time: typeof Time;
     condition: typeof CheckCondition;
     interpreter: typeof Interpreter;
     unescape: (str: string) => string;

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("../../core");
-class CheckCondition extends core_1.Functions {
+class Endif extends core_1.Functions {
     constructor() {
         super({
             name: '$endif',
@@ -10,4 +10,4 @@ class CheckCondition extends core_1.Functions {
         });
     }
 }
-exports.default = CheckCondition;
+exports.default = Endif;

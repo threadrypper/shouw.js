@@ -26,9 +26,7 @@ class Let extends core_1.Functions {
     }
     code(_ctx, [varname, value], data) {
         data.variables[varname] = value;
-        return {
-            result: void 0
-        };
+        return this.success();
     }
 }
 exports.default = Let;

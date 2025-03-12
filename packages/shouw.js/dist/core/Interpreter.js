@@ -3,10 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Interpreter = void 0;
 const _1 = require("./");
 const typings_1 = require("../typings");
+const utils_1 = require("../utils");
 const Discord = require("discord.js");
 class Interpreter {
     constructor(cmd, options, extras) {
-        this.time = Date.now();
+        this.start = performance.now();
+        this.interpreter = Interpreter;
         this.noop = () => { };
         this.discord = Discord;
         this.isError = false;
@@ -28,6 +30,8 @@ class Interpreter {
         this.flags = void 0;
         this.message = void 0;
         this.helpers = {
+            sleep: utils_1.sleep,
+            time: _1.Time,
             condition: _1.CheckCondition,
             interpreter: Interpreter,
             unescape: (str) => str.unescape(),
@@ -40,7 +44,7 @@ class Interpreter {
                     variables: {},
                     splits: [],
                     randoms: {},
-                    timezone: 'UTC'
+                    timezone: void 0
                 };
         this.extras =
             extras ??
@@ -123,11 +127,8 @@ class Interpreter {
                     unpacked.args = processedArgs;
                     if (this.isError)
                         break;
-                    const DATA = (await functionData.code({
-                        ...this,
-                        interpreter: Interpreter,
-                        data: this.Temporarily
-                    }, processedArgs, this.Temporarily)) ?? {};
+                    const DATA = (0, utils_1.filterObject)(await functionData.code(this, processedArgs, this.Temporarily)) ??
+                        {};
                     currentCode = currentCode.replace(unpacked.all, DATA.result?.toString() ?? '');
                     oldCode = oldCode.replace(unpacked.all, '');
                     if (this.isError || DATA.error === true) {
@@ -140,7 +141,9 @@ class Interpreter {
                         this[key] = value;
                     }
                 }
-                return currentCode.trim().replace(/\$executionTime/gi, (Date.now() - this.time).toString());
+                return currentCode
+                    .trim()
+                    .replace(/\$executionTime/gi, (performance.now() - this.start).toFixed(2).toString());
             };
             this.code = (await processFunction(this.code)).unescape();
             if (this.extras.sendMessage === true &&
@@ -151,34 +154,24 @@ class Interpreter {
                     this.attachments.length > 0)) {
                 this.message = (await this.context?.send({
                     content: this.code !== '' ? this.code : void 0,
-                    embeds: this.embeds,
-                    components: this.components,
-                    files: this.attachments,
-                    flags: this.flags
+                    embeds: this.embeds.filter(Boolean),
+                    components: this.components.filter(Boolean),
+                    files: this.attachments.filter(Boolean),
+                    flags: (Array.isArray(this.flags) ? this.flags.filter(Boolean) : this.flags)
                 }));
             }
-            return {
-                ...(this.isError === false &&
-                    this.extras.returnResult === true && {
-                    result: this.code
-                }),
-                ...(this.extras.returnId === true && {
-                    id: this.message?.id
-                }),
-                ...(this.extras.returnError === true && {
-                    error: this.isError
-                }),
-                ...(this.extras.returnData === true && {
-                    data: {
-                        ...this.Temporarily,
-                        embeds: this.embeds,
-                        components: this.components,
-                        attachments: this.attachments,
-                        flags: this.flags,
-                        args: this.args
-                    }
-                })
-            };
+            return ((0, utils_1.filterObject)({
+                result: this.code,
+                id: this.message?.id,
+                error: this.isError,
+                data: {
+                    ...this.Temporarily,
+                    embeds: this.embeds,
+                    components: this.components,
+                    attachments: this.attachments,
+                    flags: this.flags
+                }
+            }) ?? {});
         }
         catch (err) {
             this.client.debug(`${err?.stack ?? err}`, 'ERROR', true);
@@ -260,19 +253,22 @@ class Interpreter {
                 functions.push(matchingFunctions.sort((a, b) => b.length - a.length)[0]);
             }
         }
-        return functions.filter(Boolean);
+        return (0, utils_1.filterArray)(functions) ?? [];
+    }
+    success(result = void 0, error, ...data) {
+        return { ...data, result, error };
     }
     async error(options) {
         try {
+            const { message, solution } = typeof options === 'string' ? { message: options } : options;
             this.isError = true;
-            if (!options.message)
-                return;
-            this.message = await this.context?.send(`\`\`\`\n🚫 ${options.message}${options.solution ? `\n\nSo, what is the solution?\n${options.solution}` : ''}\`\`\``);
+            this.message = await this.context?.send(`\`\`\`\n🚫 ${message}${solution ? `\n\nSo, what is the solution?\n${solution}` : ''}\`\`\``);
         }
         catch {
             this.isError = true;
-            this.client.debug(options.message, 'ERROR', true);
+            this.client.debug(typeof options === 'string' ? options : options.message, 'ERROR', true);
         }
+        return { result: void 0, error: true };
     }
     switchArg(arg, type) {
         if (!arg || arg === '' || typings_1.ParamType.Void === type)

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("../../core");
 const typings_1 = require("../../typings");
-class CheckCondition extends core_1.Functions {
+class If extends core_1.Functions {
     constructor() {
         super({
             name: '$if',
@@ -19,4 +19,4 @@ class CheckCondition extends core_1.Functions {
         });
     }
 }
-exports.default = CheckCondition;
+exports.default = If;

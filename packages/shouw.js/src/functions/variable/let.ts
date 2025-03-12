@@ -27,9 +27,6 @@ export default class Let extends Functions {
 
     code(_ctx: Interpreter, [varname, value]: [string, string], data: TemporarilyData): FunctionResultData {
         data.variables[varname] = value;
-
-        return {
-            result: void 0
-        };
+        return this.success();
     }
 }

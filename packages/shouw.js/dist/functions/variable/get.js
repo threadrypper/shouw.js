@@ -18,10 +18,10 @@ class Get extends core_1.Functions {
             ]
         });
     }
-    code(_ctx, [varname], data) {
-        return {
-            result: data.variables[varname]
-        };
+    async code(ctx, [varname], data) {
+        if (!Object.hasOwn(data.variables, varname))
+            return await ctx.error(`$get: Variable with the name "${varname}" does not exist!`);
+        return this.success(data.variables[varname]);
     }
 }
 exports.default = Get;

@@ -75,4 +75,8 @@ export class Functions {
         | undefined {
         return this.params?.[index];
     }
+
+    public success(result: any = void 0, error?: boolean, ...data: FunctionResultData[]): FunctionResultData {
+        return { ...data, result, error };
+    }
 }

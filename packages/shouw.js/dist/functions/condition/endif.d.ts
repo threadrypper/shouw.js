@@ -1,4 +1,4 @@
 import { Functions } from '../../core';
-export default class CheckCondition extends Functions {
+export default class Endif extends Functions {
     constructor();
 }

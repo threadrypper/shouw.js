@@ -1,7 +1,7 @@
 import { Functions } from '../../core';
 import type { FunctionData } from '../../typings';
 
-export default class CheckCondition extends Functions {
+export default class Endif extends Functions {
     constructor() {
         super({
             name: '$endif',

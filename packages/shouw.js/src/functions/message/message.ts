@@ -2,7 +2,7 @@ import { Functions, type Interpreter } from '../../core';
 import type { FunctionData, FunctionResultData } from '../../typings';
 import { ParamType } from '../../typings';
 
-export default class Get extends Functions {
+export default class Message extends Functions {
     constructor() {
         super({
             name: '$message',
@@ -20,16 +20,6 @@ export default class Get extends Functions {
     }
 
     code(ctx: Interpreter, [index = Number.NaN]: [number?]): FunctionResultData {
-        let result: string;
-
-        if (Number.isNaN(index)) {
-            result = ctx.args?.join(' ') ?? '';
-        } else {
-            result = ctx.args?.[index - 1] ?? '';
-        }
-
-        return {
-            result
-        };
+        return this.success(Number.isNaN(index) ? ctx.args?.join(' ') : ctx.args?.[index - 1]);
     }
 }

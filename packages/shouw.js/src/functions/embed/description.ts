@@ -29,11 +29,8 @@ export default class Description extends Functions {
         index = !index ? 0 : index - 1;
         if (!ctx.embeds) ctx.embeds = [];
         if (!ctx.embeds[index]) ctx.embeds[index] = new ctx.discord.EmbedBuilder();
-        ctx.embeds[index].setDescription(text);
-        ctx.embeds = ctx.embeds.filter(Boolean);
+        ctx.embeds[index].setDescription(text.unescape());
 
-        return {
-            result: void 0
-        };
+        return this.success();
     }
 }

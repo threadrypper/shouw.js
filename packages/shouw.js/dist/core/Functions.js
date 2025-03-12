@@ -55,6 +55,9 @@ class Functions {
     getParams(index) {
         return this.params?.[index];
     }
+    success(result = void 0, error, ...data) {
+        return { ...data, result, error };
+    }
 }
 exports.Functions = Functions;
 _Functions_name = new WeakMap(), _Functions_brackets = new WeakMap(), _Functions_description = new WeakMap(), _Functions_type = new WeakMap(), _Functions_params = new WeakMap();

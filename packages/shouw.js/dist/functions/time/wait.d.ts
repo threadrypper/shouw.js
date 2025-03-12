@@ -1,6 +1,6 @@
 import { Functions, type Interpreter } from '../../core';
 import type { FunctionResultData } from '../../typings';
-export default class Message extends Functions {
+export default class Wait extends Functions {
     constructor();
-    code(ctx: Interpreter, [index]: [number?]): FunctionResultData;
+    code(ctx: Interpreter, [time]: [string]): Promise<FunctionResultData>;
 }

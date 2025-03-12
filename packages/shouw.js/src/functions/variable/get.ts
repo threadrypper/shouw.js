@@ -19,9 +19,10 @@ export default class Get extends Functions {
         } as FunctionData);
     }
 
-    code(_ctx: Interpreter, [varname]: [string], data: TemporarilyData): FunctionResultData {
-        return {
-            result: data.variables[varname]
-        };
+    async code(ctx: Interpreter, [varname]: [string], data: TemporarilyData): Promise<FunctionResultData> {
+        if (!Object.hasOwn(data.variables, varname))
+            return await ctx.error(`$get: Variable with the name "${varname}" does not exist!`);
+
+        return this.success(data.variables[varname]);
     }
 }

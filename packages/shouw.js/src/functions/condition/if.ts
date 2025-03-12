@@ -2,7 +2,7 @@ import { Functions } from '../../core';
 import type { FunctionData } from '../../typings';
 import { ParamType } from '../../typings';
 
-export default class CheckCondition extends Functions {
+export default class If extends Functions {
     constructor() {
         super({
             name: '$if',

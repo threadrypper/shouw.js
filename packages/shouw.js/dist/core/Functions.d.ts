@@ -22,4 +22,5 @@ export declare class Functions {
         required?: boolean;
         type?: ParamType;
     } | undefined;
+    success(result?: any, error?: boolean, ...data: FunctionResultData[]): FunctionResultData;
 }

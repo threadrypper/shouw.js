@@ -2,6 +2,7 @@ export * from './Interpreter';
 export * from './Functions';
 export * from './Conditions';
 export * from './IF';
+export * from './Time';
 
 String.prototype.unescape = function () {
     return this.replace(/#RIGHT#/g, '[')

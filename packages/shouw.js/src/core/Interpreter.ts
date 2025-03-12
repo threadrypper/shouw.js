@@ -9,12 +9,20 @@ import type {
     MessageActionRowComponentData,
     MessageActionRowComponentBuilder
 } from 'discord.js';
-import type { CommandData, HelpersData, ExtraOptionsData, TemporarilyData, InterpreterOptions } from '../typings';
+import type {
+    FunctionResultData,
+    CommandData,
+    HelpersData,
+    ExtraOptionsData,
+    TemporarilyData,
+    InterpreterOptions
+} from '../typings';
 import type { Functions } from './Functions';
 import type { Context, FunctionsManager, ShouwClient as Client } from '../classes';
 
-import { CheckCondition, IF } from './';
+import { CheckCondition, IF, Time } from './';
 import { ParamType } from '../typings';
+import { filterObject, filterArray, sleep } from '../utils';
 import * as Discord from 'discord.js';
 
 export class Interpreter {
@@ -22,7 +30,8 @@ export class Interpreter {
     public readonly functions: FunctionsManager;
     public readonly debug: boolean | undefined;
 
-    public time = Date.now();
+    public start = performance.now();
+    public interpreter = Interpreter;
     public code: string | ((ctx: Interpreter) => any);
     public command: CommandData;
     public channel?: Channel;
@@ -42,7 +51,7 @@ export class Interpreter {
     public discord: typeof Discord = Discord;
     public readonly extras: ExtraOptionsData;
     public isError = false;
-    public components: readonly (
+    public components: (
         | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
         | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
         | APIActionRowComponent<APIMessageActionRowComponent>
@@ -67,6 +76,8 @@ export class Interpreter {
         this.flags = void 0;
         this.message = void 0;
         this.helpers = {
+            sleep: sleep,
+            time: Time,
             condition: CheckCondition,
             interpreter: Interpreter,
             unescape: (str: string) => str.unescape(),
@@ -79,7 +90,7 @@ export class Interpreter {
                 variables: {},
                 splits: [],
                 randoms: {},
-                timezone: 'UTC'
+                timezone: void 0
             } as TemporarilyData);
         this.extras =
             (extras as ExtraOptionsData) ??
@@ -179,20 +190,12 @@ export class Interpreter {
 
                     unpacked.args = processedArgs;
                     if (this.isError) break;
-
                     const DATA =
-                        (await functionData.code(
-                            {
-                                ...this,
-                                interpreter: Interpreter,
-                                data: this.Temporarily
-                            },
-                            processedArgs,
-                            this.Temporarily
-                        )) ?? {};
-
+                        filterObject(await functionData.code(this, processedArgs, this.Temporarily)) ??
+                        ({} as FunctionResultData);
                     currentCode = currentCode.replace(unpacked.all, DATA.result?.toString() ?? '');
                     oldCode = oldCode.replace(unpacked.all, '');
+
                     if (this.isError || DATA.error === true) {
                         this.isError = true;
                         break;
@@ -204,7 +207,9 @@ export class Interpreter {
                     }
                 }
 
-                return currentCode.trim().replace(/\$executionTime/gi, (Date.now() - this.time).toString());
+                return currentCode
+                    .trim()
+                    .replace(/\$executionTime/gi, (performance.now() - this.start).toFixed(2).toString());
             };
 
             this.code = (await processFunction(this.code)).unescape();
@@ -219,10 +224,10 @@ export class Interpreter {
             ) {
                 this.message = (await this.context?.send({
                     content: this.code !== '' ? this.code : void 0,
-                    embeds: this.embeds,
-                    components: this.components,
-                    files: this.attachments,
-                    flags: this.flags as
+                    embeds: this.embeds.filter(Boolean),
+                    components: this.components.filter(Boolean),
+                    files: this.attachments.filter(Boolean),
+                    flags: (Array.isArray(this.flags) ? this.flags.filter(Boolean) : this.flags) as
                         | BitFieldResolvable<
                               'SuppressEmbeds' | 'SuppressNotifications',
                               MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
@@ -231,28 +236,20 @@ export class Interpreter {
                 })) as Discord.Message;
             }
 
-            return {
-                ...(this.isError === false &&
-                    this.extras.returnResult === true && {
-                        result: this.code
-                    }),
-                ...(this.extras.returnId === true && {
-                    id: this.message?.id
-                }),
-                ...(this.extras.returnError === true && {
-                    error: this.isError
-                }),
-                ...(this.extras.returnData === true && {
+            return (
+                filterObject({
+                    result: this.code,
+                    id: this.message?.id,
+                    error: this.isError,
                     data: {
                         ...this.Temporarily,
                         embeds: this.embeds,
                         components: this.components,
                         attachments: this.attachments,
-                        flags: this.flags,
-                        args: this.args
+                        flags: this.flags
                     }
-                })
-            };
+                }) ?? {}
+            );
         } catch (err: any) {
             this.client.debug(`${err?.stack ?? err}`, 'ERROR', true);
             return {};
@@ -345,20 +342,26 @@ export class Interpreter {
             }
         }
 
-        return functions.filter(Boolean);
+        return filterArray(functions) ?? [];
     }
 
-    public async error(options: { message: string; solution?: string }): Promise<undefined> {
+    public success(result: any = void 0, error?: boolean, ...data: FunctionResultData[]): FunctionResultData {
+        return { ...data, result, error };
+    }
+
+    public async error(options: string | { message: string; solution?: string }): Promise<FunctionResultData> {
         try {
+            const { message, solution } = typeof options === 'string' ? { message: options } : options;
             this.isError = true;
-            if (!options.message) return;
             this.message = await this.context?.send(
-                `\`\`\`\n🚫 ${options.message}${options.solution ? `\n\nSo, what is the solution?\n${options.solution}` : ''}\`\`\``
+                `\`\`\`\n🚫 ${message}${solution ? `\n\nSo, what is the solution?\n${solution}` : ''}\`\`\``
             );
         } catch {
             this.isError = true;
-            this.client.debug(options.message, 'ERROR', true);
+            this.client.debug(typeof options === 'string' ? options : options.message, 'ERROR', true);
         }
+
+        return { result: void 0, error: true };
     }
 
     private switchArg(arg: string, type: ParamType): any {

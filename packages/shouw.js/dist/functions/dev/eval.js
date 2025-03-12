@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("../../core");
 const typings_1 = require("../../typings");
 const node_util_1 = require("node:util");
-class CheckCondition extends core_1.Functions {
+class Eval extends core_1.Functions {
     constructor() {
         super({
             name: '$eval',
@@ -61,9 +61,7 @@ class CheckCondition extends core_1.Functions {
             returnError,
             returnData
         }).initialize();
-        return {
-            result: returnId || returnResult || returnError || returnData ? (0, node_util_1.inspect)(interpreterResult) : void 0
-        };
+        return this.success(returnId || returnResult || returnError || returnData ? (0, node_util_1.inspect)(interpreterResult) : void 0);
     }
 }
-exports.default = CheckCondition;
+exports.default = Eval;
